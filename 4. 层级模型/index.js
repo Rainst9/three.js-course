@@ -14,7 +14,7 @@ scene.add(axesHelper)
 
 // 光源
   // 平行光 DirectionalLight
-  // 方向是从 灯光的位置 到 目标的位置
+  // 方向是从 灯光的位置 到 目标的位置（默认是原点）
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
 directionalLight.position.set(100, 60, 50)
 scene.add(directionalLight)

@@ -23,6 +23,14 @@ group.add(mesh1, mesh2)
 // group.scale.set(0.5, 0.5, 0.5)
 // group.rotateY(Math.PI/2)
 
+// 隐藏
+// mesh2.visible = false
+// mesh2.material.visible = false
+
+// 移除
+// group.remove(mesh2)
+// group.remove(mesh1, mesh2)
+
 console.log(group.children, 'group')
 console.log(mesh1.children, 'mesh1')
 
