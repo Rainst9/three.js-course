@@ -55,6 +55,42 @@
     geometry.attributes.uv = new THREE.BufferAttribute(uvs, 2)
   ``` 
   ![Alt text](image-2.png)
+
+  ### （3）圆形平面设置纹理贴图
+  CircleGeometry 的 UV 坐标默认就是一个圆形。
+  
+  ### （4）纹理对象 Texture 阵列
+  ``` 
+    texture.wrapS = THREE.RepeatWrapping // 水平方向如何映射
+    texture.wrapT = THREE.RepeatWrapping // 垂直方向如何映射
+    texture.repeat.x = 20 // 水平方向重复个数，注意选择合适的阵列数量
+    texture.repeat.y = 20 // 水平方向重复个数，注意选择合适的阵列数量
+  ``` 
+
+  ### （5）矩形 Mesh + 背景透明 png 贴图
+  ```
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      // 开启透明计算
+      transparent: true
+    })
+  ```
+
+  ### （6）UV 动画
+  ```
+    // offset 范围是 0 - 1，是指贴图从开始偏移多少，本质还是改变 UV 坐标
+    // 其实就是这个贴图的百分比
+    // texture.offset.x = 0.8
+    // texture.offset.y = 0.5
+
+    // 渲染循环
+    function render() {
+      texture.offset.x += 0.01 // 设置纹理动画
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+    }
+  ```
+
 # 四、实际写代码遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
   （1）材质问题

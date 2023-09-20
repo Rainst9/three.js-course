@@ -2,12 +2,26 @@ import * as THREE from 'three'
 
 // 纹理贴图加载器 TextureLoader
 const texLoader = new THREE.TextureLoader()   
-const texture = texLoader.load('./earth.jpg')
+// const texture = texLoader.load('./earth.jpg')
+// const texture = texLoader.load('./瓷砖.jpg')
+// const texture = texLoader.load('./转弯.png')
+const texture = texLoader.load('./纹理3.jpg')
+texture.wrapS = THREE.RepeatWrapping // 水平方向如何映射
+// texture.wrapT = THREE.RepeatWrapping // 垂直方向如何映射
+texture.repeat.x = 20 // 水平方向重复个数，注意选择合适的阵列数量
+// texture.repeat.y = 20 // 水平方向重复个数，注意选择合适的阵列数量
+
+// offset How much a single repetition of the texture is offset from the beginning, in each direction U and V. Typical range is 0.0 to 1.0.
+// 范围是 0 - 1，是指贴图从开始偏移多少，本质还是改变 UV 坐标
+// 其实就是这个贴图的百分比
+// texture.offset.x = 0.8
+// texture.offset.y = 0.5
 
 // const geometry = new THREE.BoxGeometry(50, 50, 50)
 // const geometry = new THREE.SphereGeometry(50)
-const geometry1 = new THREE.PlaneGeometry(150, 50)
 const geometry = new THREE.BufferGeometry()
+const geometry1 = new THREE.PlaneGeometry(200, 30)
+const geometry2 = new THREE.CircleGeometry(50)
 
 // 类型数组创建顶点数据
 const vertices = new Float32Array([
@@ -45,9 +59,19 @@ const material = new THREE.MeshBasicMaterial({
   // map：颜色贴图属性
   // 之所以叫颜色贴图，就是因为会获得贴图的颜色值到网格模型上
   // 一般设置 map 后不需要再设置 color，因为颜色会混合
-  map: texture
+  map: texture,
+  // 开启透明计算
+  transparent: true
 })
 
-const mesh = new THREE.Mesh(geometry, material)
+const mesh = new THREE.Mesh(geometry1, material)
 
-export default mesh
+// CircleGeometry 的 UV 坐标，默认提取的就是一个圆形
+console.log(geometry2.attributes.uv, 'geometry2.attributes.uv')
+
+// 旋转 mesh
+mesh.rotateX(-Math.PI/2)
+
+console.log(texture.repeat.x, 'texture.repeat.x')
+
+export { mesh, texture }
