@@ -90,8 +90,76 @@
       requestAnimationFrame(render)
     }
   ```
+## 6. 加载外部三维模型(gltf)
+  ### （1~2）建模软件绘制3D场景、GLTF格式简介 (Web3D领域JPG)
+    - 美术导出 3D 模型，导出 GLTF 等常见格式
+    - 程序负责加载解析模型
+  ### （3）加载.gltf文件(模型加载全流程)
+    ```
+      // 引入 GLTFLoader.js gltf 模型加载器
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+      // 实例化加载器对象
+      const loader = new GLTFLoader()
+      // 加载模型
+      loader.load( 'gltf模型.gltf', function ( gltf ) {
+        console.log('控制台查看加载 gltf 文件返回的对象结构',gltf);
+        console.log('gltf 对象场景属性',gltf.scene);
+        // 返回的场景对象 gltf.scene 插入到 threejs 场景中
+        scene.add( gltf.scene );
+      })
+      // 设置合适的相机参数
+        // position、lookAt、far、near 等
+      // 解决纹理贴图颜色偏差
+      renderer.outputEncoding = THREE.sRGBEncoding // 新版本已经不需要
+    ```
+  ### （4）OrbitControls 辅助设置相机参数
+    ```
+      // 在给出一个大概的值后，可以通过 OrbitControls，可视化设置相机参数
+      function render() {
+        requestAnimationFrame(render)
+        console.log('camera.position', camera.position)
+        console.log('controls.target', controls.target)
+      }
+      render()
+    ```
+  ### （5～6）gltf不同文件形式(.glb)、模型命名(程序与美术协作)
+    ```
+      - 单独.gltf文件
+      - 单独.glb文件
+      - .gltf + .bin + 贴图文件
 
-# 四、实际写代码遇到的问题
+      - .getObjectByName()根据.name获取模型节点
+      - 分组 group 管理，更清晰
+    ```
+  ### （7）递归遍历层级模型修改材质
+    ![Alt text](image-4.png)
+    
+    ```
+      // 递归遍历方法 .traverse()
+      gltf.scene.traverse((obj) => {
+        if (obj.isMesh) {
+          obj.material = new THREE.MeshLambertMaterial({
+            color: 0x00ffff
+          })
+        }
+      })
+
+      // 查看 gltf 默认的材质
+      // threejs 一般默认 gltf 的材质是 MeshStandardMaterial、MeshPhysicalMaterial，这两个属于 PBR 物理材质，效果更加真实
+    ```
+  ### （8）外部模型材质是否共享的问题
+    ```
+      // 1. 三维建模软件中设置，材质不共享
+      // 2. 代码更改：克隆材质对象，重新赋值
+      gltf.scene.getObjectByName("小区房子").traverse(function (obj) {
+        if (obj.isMesh) {
+          // .material.clone() 返回一个新材质对象，和原来一样，重新赋值给 .material 属性
+          obj.material = obj.material.clone()
+        }
+      })
+    ```
+
+# 四、实际遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
   （1）材质问题
 
@@ -100,4 +168,5 @@
 
   （1）相机位置不对
 ## 2. 有光照的情况下，为什么 MeshLambertMaterial 材质不显示？
-
+## 3. 代码没有光照的情况下，只有基础网格材质可以显示？如果美术模型里有光照呢？也会这样么？还是取决于美术模型里各个物体的材质呢？
+![Alt text](image-3.png)
