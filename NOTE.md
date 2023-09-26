@@ -132,8 +132,6 @@
       - 分组 group 管理，更清晰
     ```
   ### （7）递归遍历层级模型修改材质
-    ![Alt text](image-4.png)
-    
     ```
       // 递归遍历方法 .traverse()
       gltf.scene.traverse((obj) => {
@@ -158,6 +156,62 @@
         }
       })
     ```
+
+## 7. PBR 材质与纹理贴图
+  ### （1）PBR 材质简介
+  - PBR，基于物理的渲染（physically-based rendering）
+  - threejs 提供两个相关 API，MeshStandardMaterial、MeshPhysicalMaterial。
+  不同材质，使用的光照模型不同，效果也不同
+
+  ![Alt text](image-4.png)
+  ### （2）PBR 材质金属度和粗糙度
+  ```
+    // .metalness 金属度，0 - 1，非金属 0，金属 1，默认是 0
+    material.metalness = 1
+    // .roughness 粗糙程度，0 - 1，镜面反射 0，漫反射 1，默认是 1
+    material.roughness = 0.3
+  ```
+  ### （3～4）环境贴图 .envMap
+  ```
+    // 环境贴图 .envMap 模型可以反射周围的景物（更符合现实生活）
+    // 上下左右前后 6 张贴图，构成一个立方体空间
+    // p：positive 正方向，n：negative 负方向
+    // px, nx, py, ny, pz, nz
+
+    // CubeTextureLoader 立方体纹理加载器
+    const textureCube = new THREE.CubeTextureLoader()
+      .setPath('./环境贴图/环境贴图1/')
+      .load([
+        'px.jpg', 'nx.jpg', 'py.jpg', 'ny.jpg', 'pz.jpg', 'nz.jpg'
+      ])
+
+    // 设置环境贴图
+    // 如果场景里没有光源，那么 PBR 材质是黑色的，这时候只加上环境贴图，会发现可以看见了
+    // 其实相当于是 贴图里的环境提供了光线
+    material.envMap = textureCube
+
+    // 也可以给场景设置环境贴图，这样场景中所有物理材质都会是这个环境贴图（已单独设置的不会被覆盖）
+    scene.environment = textureCube
+  ```
+  ### （5）MeshPhysicalMaterial 透明图层/清漆层
+  ```
+    const material = new THREE.MeshPhysicalMaterial({
+      // 透明图层，0 - 1，默认 0，比如车漆
+      clearcoat: 1,
+      // 透明图层的粗糙度，0 - 1，默认 0
+      clearcoatRoughness: 0
+    })
+  ```
+  ### （6）MeshPhysicalMaterial 透光率
+  ```
+    const material = new THREE.MeshPhysicalMaterial({
+      roughness: 0,
+      // 透光率，0 - 1，默认是 0，比如玻璃、透明或者半透明的塑料
+      transmission: 1,
+      // 折射率，1 - 2.333。默认为 1.5
+      ior: 2
+    })
+  ```
 
 # 四、实际遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
