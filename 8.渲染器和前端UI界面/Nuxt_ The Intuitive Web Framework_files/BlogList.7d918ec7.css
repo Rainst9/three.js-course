@@ -1,0 +1,1 @@
+.app-card-blog{display:flex!important;flex-direction:column;height:var(--size-full);justify-content:space-between;padding:0}.app-card-blog>.header{padding:0}@media (min-width:640px){.app-card-blog>.header{padding:0}}

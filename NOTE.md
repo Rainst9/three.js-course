@@ -213,6 +213,44 @@
     })
   ```
 
+## 8. 渲染器和前端UI界面
+  ```
+    // 一、实现 3d 物体悬浮的效果（背景透明）
+    const renderer = new THREE.WebGLRenderer({
+      // 设置背景色的透明度，默认 false ，是 1，设置 true，是 0
+      // alpha: true
+
+      // 实现保存当前 canvas 图的参数
+      // whether to preserve the buffers until manually cleared or overwritten. Default is false.
+      preserveDrawingBuffer: true
+    })
+
+    // 设置背景色的透明度，0 ～ 1
+    // renderer.setClearAlpha(0)
+
+    // 设置背景颜色以及透明度
+    renderer.setClearColor('red', 0)
+
+    // 二、模型闪烁 
+    // 问题：两个 mesh 位置重合，电脑 GPU 无法分清谁在前谁后，所以会闪烁，这就叫深度冲突，即 Z-fighting
+
+    // 修改下位置即可，但如果相机距离模型位置较远，也会
+    // 闪烁，因为近大远小，之前设置的 z 轴距离的偏差也会变小，导致电脑无法识别
+    // 可以通过设置 logarithmicDepthBuffer 对数深度缓存为 true（在单个场景中处理巨大的比例差异）
+    mesh2.position.z = -1
+
+    // 但距离过小，电脑 GPU 也无法识别
+    // 距离过小或者重合，设置 logarithmicDepthBuffer 也是无效的
+    // mesh2.position.z = -0.000000000001
+
+    // 三、模型加载进度条
+    // 实例化加载器对象
+    const loader = new GLTFLoader()
+    loader.load('./工厂.glb', (gltf) => {}, (res) => {
+      const percent = res.loaded / res.total
+    })
+  ```
+
 # 四、实际遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
   （1）材质问题
@@ -220,7 +258,7 @@
     MeshBasicMaterial：基础网格材质，不受光照的影响
     MeshLambertMaterial：Lambert 网格材质，需要光照，否则就是黑色的
 
-  （1）相机位置不对
+  （2）相机位置不对
 ## 2. 有光照的情况下，为什么 MeshLambertMaterial 材质不显示？
 ## 3. 代码没有光照的情况下，只有基础网格材质可以显示？如果美术模型里有光照呢？也会这样么？还是取决于美术模型里各个物体的材质呢？
 ![Alt text](image-3.png)

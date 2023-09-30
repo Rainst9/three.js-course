@@ -13,7 +13,7 @@ const group = new THREE.Group()
 const loader = new GLTFLoader()
 
 // 加载模型
-loader.load('./简易小区-共享材质.glb', (gltf) => {
+loader.load('./工厂.glb', (gltf) => {
   console.log('gltf', gltf)
   group.add(gltf.scene)
 
@@ -42,6 +42,9 @@ loader.load('./简易小区-共享材质.glb', (gltf) => {
   //     })
   //   }
   // })
+}, (res) => {
+  const percent = res.loaded / res.total
+  console.log(percent, 'percent')
 })
 
 export { group }
