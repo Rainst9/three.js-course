@@ -54,7 +54,7 @@
     // 设置 uv 属性
     geometry.attributes.uv = new THREE.BufferAttribute(uvs, 2)
   ``` 
-  ![Alt text](image-2.png)
+  ![纹理贴图](image-2.png)
 
   ### （3）圆形平面设置纹理贴图
   CircleGeometry 的 UV 坐标默认就是一个圆形。
@@ -163,7 +163,7 @@
   - threejs 提供两个相关 API，MeshStandardMaterial、MeshPhysicalMaterial。
   不同材质，使用的光照模型不同，效果也不同
 
-  ![Alt text](image-4.png)
+  ![网格材质](image-4.png)
   ### （2）PBR 材质金属度和粗糙度
   ```
     // .metalness 金属度，0 - 1，非金属 0，金属 1，默认是 0
@@ -251,6 +251,211 @@
     })
   ```
 
+## 9. 生成曲线、几何体
+  ```
+    // 一、几何体 .setFromPoints() 方法
+      // 把坐标数据提取出来，赋值给 geometry.attributes.position 属性
+    
+    const pointsArr = [
+      // 三维向量 Vector3 表示的坐标值
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 100, 0),
+      new THREE.Vector3(0, 100, 100),
+      new THREE.Vector3(0, 0, 100)
+    ]
+
+    geometry.setFromPoints(pointsArr)
+
+    // 二、曲线 Curve 简介
+      //（一）EllipseCurve 椭圆
+        // EllipseCurve(aX，aY，xRadius，yRadius，aStartAngle，aEndAngle，aClockwise)
+        const ellipse = new THREE.EllipseCurve(0, 0, 100, 50, Math.PI, ((Math.PI * 2)/4)*3, true)
+        // getPoints 考虑曲线斜率，斜率变化快，返回的顶点更多
+        const points = ellipse.getPoints(50)
+        // getSpacedPoints 按照距离等间距返回顶点
+        // const points = ellipse.getSpacedPoints(30)
+        // points 越多，曲线越光滑
+        geometry.setFromPoints(points)
+      
+      //（二）样条曲线：经过一系列点创建的平滑曲线
+        // SplineCurve、CatmullRomCurve3
+          const arr = [
+            new THREE.Vector2(10, -10),
+            new THREE.Vector2(-20, 20),
+            new THREE.Vector2(60, 60)
+          ]
+          const splineCurve = new THREE.SplineCurve(arr)
+          const points = splineCurve.getPoints(50)
+          geometry.setFromPoints(points)
+
+          const arr = [
+            new THREE.Vector3(10, -10, 60),
+            new THREE.Vector3(-20, 20, 0),
+            new THREE.Vector3(60, 60, -60)
+          ]
+          const catmullRomCurve = new THREE.CatmullRomCurve3(arr)
+          const points = catmullRomCurve.getPoints(50)
+          geometry.setFromPoints(points)
+
+      //（三）贝塞尔曲线：二次贝塞尔曲线、三次贝塞尔曲线
+        // 二次：起点、终点、1个控制点
+        // 三次：起点、终点、2个控制点
+
+        // 1. 二维二次贝塞尔曲线 QuadraticBezierCurve(起点，控制点，终点)
+          const arr = [
+            new THREE.Vector2( -10, 0 ),
+            new THREE.Vector2( 20, 15 ),
+            new THREE.Vector2( 10, 0 )
+          ]
+          const quadraticBezierCurve = new THREE.QuadraticBezierCurve(...arr)
+          const points = quadraticBezierCurve.getPoints(50)
+          geometry.setFromPoints(points)
+
+        // 2. 三维二次贝塞尔曲线 QuadraticBezierCurve3
+        // 点数据是 Vector3
+
+        // 3. 二维三次贝塞尔曲线 CubicBezierCurve(起点，控制点1，控制点2，终点)
+          const arr = [
+            new THREE.Vector2(-10, 0),
+            new THREE.Vector2(10, 15),
+            new THREE.Vector2(20, 18),
+            new THREE.Vector2(30, 5)
+          ]
+          const cubicBezierCurve = new THREE.CubicBezierCurve(...arr)
+          const points = cubicBezierCurve.getPoints(50)
+          geometry.setFromPoints(points)
+
+        // 4. 三维三次贝塞尔曲线 CubicBezierCurve3
+        // 点数据是 Vector3
+
+      //（四）样条、贝塞尔曲线应用：飞线，比如地球、地图上的飞线
+      // 🌰：已知两点坐标，生成一条轨迹飞线，曲线有一定的高度
+      // 思路：计算中点坐标，再定义高度，然后连接成曲线
+
+      //（五）CurvePath 拼接曲线
+      // 注意：组成曲线的坐标顺序、线条组合的顺序不能随意写，要从一个方向出发，确保他们是首尾相接
+      // 🌰：画一个 U 形
+      // 思路：两条直线 + 半圆
+        const curvePath = new THREE.CurvePath()
+        curvePath.curves.push(line1, arc, line2)
+        const points = curvePath.getPoints(10)
+        geometry.setFromPoints(points)
+
+      //（六）曲线路径管道 TubeGeometry 沿着三维曲线
+        const geometry = new THREE.TubeGeometry(catmullRomCurve, 20, 5)
+
+      //（七）旋转成型 LatheGeometry 利用二维轮廓，经过旋转（默认是绕着Y轴）生成3D几何体曲面
+      // LatheGeometry(points, segments, phiStart, phiLength)
+      // points Vector2 表示的坐标数据组成的数组，x 必须大于 0 
+        const splineCurve = new THREE.SplineCurve(arr)
+        const points = splineCurve.getPoints(50)
+        const geometry = new THREE.LatheGeometry(points, 30, 0, Math.PI*2)
+
+      //（八）Shape、ShapeGeometry、ExtrudeGeometry
+      // Shape，多边形轮廓，Shape(points)，points 为 Vector2 数组
+      // Shape，.currentPoint 当前点
+      // .moveTo(x, y) 可以改变，执行其他绘制方法也能改变，比如 .lineTo
+        // 1. 绘制矩形加扇形
+          const shape = new THREE.Shape()
+          shape.lineTo(60, 0)
+          // arc 的圆心坐标是相当于当前的 currentPoint 而言的
+          // absarc 是以坐标原点而言的
+          shape.arc(0, 0, 30, 0, Math.PI / 2)
+          shape.absarc(60, 0, 30, 0, Math.PI / 2)
+          shape.lineTo(0, 30)
+
+        // 2. 定义 shape 上的孔洞: .holes path 数组
+          const path1 = new THREE.Path()
+          path1.absarc(10, 10, 5)
+          const path2 = new THREE.Path()
+          path2.absellipse(25, 25, 10, 6)
+          shape.holes.push(path1, path2)
+
+        // 3. ShapeGeometry(shapes: Array, curveSegments: Integer)
+          const geometry = new THREE.ShapeGeometry(shape)
+
+        // 4. ExtrudeGeometry(shapes: Array, options: Object)
+        // 扫描轨迹：创建轮廓的扫描轨迹(3D样条曲线)
+          const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(20, 20, 0),
+            new THREE.Vector3(10, 0, 0),
+            new THREE.Vector3(8, 50, 50)
+          ])
+          const geometry = new THREE.ExtrudeGeometry(shape, {
+            // 拉伸长度
+            depth: 10,
+            // 生成斜角，默认是 true
+            bevelEnabled: false,
+            // 拉伸轨迹
+            extrudePath: curve,
+            // 拉伸出的几何体分几段
+            steps: 100,
+            // 曲线上点的数量
+            curveSegments: 1
+          })
+
+        // 5. 模型边界线 EdgesGeometry
+          const edgesGeometry = new THREE.EdgesGeometry(geometry, 1)
+          const edgesModel = new THREE.LineSegments(edgesGeometry, new THREE.LineBasicMaterial({
+              color: 0x00ffff
+          }))
+
+      //（九）几何体顶点颜色数据和应用
+        // 1. .attributes.color 和 .attributes.position 一一对应
+        // 3 个为一组，R，G，B
+        // 材质需要设置 .vertexColors 为 true，是否使用顶点着色。默认值为false
+
+          const geometry = new THREE.BufferGeometry()
+          const vertices = new Float32Array([
+              5, 5, 0,
+              50, 5, 0,
+              50, 50, 0
+          ])
+          geometry.attributes.position = new THREE.BufferAttribute(vertices, 3)
+
+          const colors = new Float32Array([
+              1, 0, 0, // 红
+              0, 0, 1, // 蓝
+              0, 1, 0 // 绿
+          ])
+          geometry.attributes.color = new THREE.BufferAttribute(colors, 3)
+
+        // 2. 颜色插值
+        // lerpColors(c1, c2, percent)
+        // percent 代表 c2 的比例，c1 的比例为 1 - percent
+        // r = c1.r * (1 - percent) + c2.r * percent
+        // g、b 也是如此计算 
+          const c1 = new THREE.Color(0.6, 0.2, 0.1)
+          const c2 = new THREE.Color(0.4, 0.8, 0.9)
+          const mix = new THREE.Color()
+          mix.lerpColors(c1, c2, 0.4)
+        
+        // lerp(c2, percent)
+        // c1.lerp(c2, percent) 混合后的值直接赋值给 c1 
+        // 可通过 .clone() 一个新的颜色对象，避免 c1 被修改
+        // c1.lerp(c2, 0.4)
+
+        // 3. 查看或设置 gltf 几何体顶点 & 山脉高度可视化
+          const pos = mesh.geometry.attributes.position
+          // .getX(index) .getY(index) .getZ(index)
+          // .setX(index, value) .setY(index, value) .setZ(index, value)
+          const y = pos.getY(i)
+
+          // 山脉高度可视化
+            // （1）两种颜色表示山脉高度可视化
+              // 我自己的算法：直接拿当前的高度 / 最高点，但其实这样不准确，因为这样会导致部分颜色出不来，可视化效果不准确（比如高度的最小值就是 300）
+              // 准确的算法：求出山的高度，然后拿每一个高减去最小高，这样才能准确算出比例
+
+            // （2）三种颜色表示山脉高度可视化
+              // 根据计算出的比例，做是否大于 0.5 的判断，然后插值不同的颜色
+  ```
+
+![曲线父类](image-5.png)
+![样条曲线、贝塞尔曲线](image-6.png)
+![二次贝塞尔](image-7.png)
+![三次贝塞尔](image-8.png)
+![Shape的父类](image-9.png)
+![圆心是相对的还是绝对的](image-10.png)
 # 四、实际遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
   （1）材质问题
@@ -261,4 +466,5 @@
   （2）相机位置不对
 ## 2. 有光照的情况下，为什么 MeshLambertMaterial 材质不显示？
 ## 3. 代码没有光照的情况下，只有基础网格材质可以显示？如果美术模型里有光照呢？也会这样么？还是取决于美术模型里各个物体的材质呢？
-![Alt text](image-3.png)
+![环境贴图作用](image-3.png)
+## 4. 第 9 章中，关于生成圆弧顶点的三角函数如何运用计算的？
