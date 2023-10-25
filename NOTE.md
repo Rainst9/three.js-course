@@ -456,6 +456,117 @@
 ![三次贝塞尔](image-8.png)
 ![Shape的父类](image-9.png)
 ![圆心是相对的还是绝对的](image-10.png)
+
+## 10. 相机基础
+![相机基础](image-11.png)
+  ### 10.1 正投影相机
+  ![正投影相机](image-12.png)
+  ```
+    // 正投影相机 OrthographicCamera( left : Number, right : Number, top : Number, bottom : Number, near : Number, far : Number )
+    // 区别：透视投影可以模拟人眼观察世界的视觉效果，正投影相机不会
+    const aspect = width / height // 宽高比
+    const s = 500 // 控制 left、top、bottom、right 范围
+    const camera = new THREE.OrthographicCamera(-s * aspect, s * aspect, s, -s, 1, 400)
+
+    // 画布跟随窗口变化
+    window.onresize = function () {
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      const aspect = window.innerWidth / window.innerHeight //canvas画布宽高比
+      camera.left = -s*aspect
+      camera.right = s*aspect
+      camera.updateProjectionMatrix()
+    }
+  ```
+  ### 10.2 包围盒 Box3 & 地图案例
+  ```
+    // 包围盒：把模型的所有顶点数据包围在一个最小的长方体空间中
+    const box3 = new THREE.Box3()
+    // .expandByObject 计算该模型的包围盒 
+    box3.expandByObject(group)
+    // .getSize 获取包围盒的长宽高
+    const scale = new THREE.Vector3()
+    box3.getSize(scale)
+    // .getCenter 获取包围盒的中心点
+    const center = new THREE.Vector3()
+    box3.getCenter(center)
+
+    // 地图案例思路
+    // s1: 地图数据转为二维向量
+    // s2: 点数据给到 shape，出现地图形状
+    // s3: 根据包围盒，计算中心点（相机看向中心）、计算尺寸（调整相机参数）
+  ```
+  ### 10.3 相机动画(.position和.lookAt())
+  ```
+    // let angle = 0
+    // const R = 100
+    function render() {
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+
+      // 一、相机直线运动
+      // 修改 .position 属性后，如果不执行 .lookAt 方法，观察方向是默认的，会一直变化
+      // camera.position.y += 0.1
+      // camera.lookAt(13, 3.7, -25.2)
+
+      // 二、相机圆周运动
+      // angle += 0.01
+      // camera.position.x = R * Math.cos(angle)
+      // camera.position.z = R * Math.sin(angle)
+      // camera.lookAt(13, 3.7, -25.2)
+    }
+  ```
+  ### 10.4 不同方向的投影视图 & 旋转渲染结果(.up相机上方向)
+  ```
+    // 正视图
+    // camera.position.set(center.x, center.y, 300)
+    // .up 相机的 上方向 属性，默认是(0, 1, 0)，y 的正半轴朝上
+    // .up 如果在 .lookAt 之后执行，需要重新执行 .lookAt
+    // camera.up.set(0, -1, 0) // y 的负半轴朝上
+    // camera.up.set(1, 0, 0) // x 的正半轴朝上
+    // camera.up.set(-1, 0, 0) // x 的负半轴朝上
+    // camera.lookAt(center.x, center.y, 0)
+
+    // 侧视图
+    camera.position.set(center.x + 300, center.y, 0)
+    // camera.up.set(0, 0, 1) // z 的正半轴朝上
+    camera.up.set(0, 0, -1) // z 的负半轴朝上
+    // camera.lookAt(center.x, center.y, 0)
+
+    // 俯视图
+    // camera.position.set(center.x, center.y + 300, 0)
+    // camera.lookAt(center.x, center.y, 0)
+  ```
+  ### 10.5 管道漫游案例
+  ```
+    // 思路分析：
+    // s1: 样条曲线 + TubeGeometry
+    // s2: 贴图，设置合适的 repeat
+    // s3: 相机位置：取一些点 -> 当前点的位置 + 下一个点的位置（相机 + 朝向）+ 动态循环
+  ```
+  ### 10.6 OrbitControls 旋转缩放限制 & 相机控件MapControls
+  ```
+    // OrbitControlsn 旋转缩放限制
+    // 禁止右键平移 .enablePan
+    controls.enablePan = false
+    // 禁止缩放 .enableZoom zoom 也还是生效，不过是范围小了，还影响 正投影缩放范围 的设置生效
+    // controls.enableZoom = false
+    // 禁止旋转 .enableRotate
+    // controls.enableRotate = false
+    // 设置透视投影相机缩放范围
+    // controls.maxDistance = 318
+    // controls.minDistance = 58
+    // 设置正投影缩放范围
+    // controls.minZoom = 0.5
+    // controls.maxZoom = 1
+
+    // 设置旋转范围
+    // 上下旋转 0 ～ 180 度
+    // controls.minPolarAngle = 0
+    // controls.maxPolarAngle = Math.PI / 2
+    // 左右旋转
+    // controls.minAzimuthAngle = 0
+    // controls.maxAzimuthAngle = -Math.PI / 2
+  ```
 # 四、实际遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
   （1）材质问题
@@ -468,3 +579,7 @@
 ## 3. 代码没有光照的情况下，只有基础网格材质可以显示？如果美术模型里有光照呢？也会这样么？还是取决于美术模型里各个物体的材质呢？
 ![环境贴图作用](image-3.png)
 ## 4. 第 9 章中，关于生成圆弧顶点的三角函数如何运用计算的？
+## 5. 第 10 章中，.up 相机的 上方向 属性，目前理解的是 x、y、z 轴这个谁在上方向，但具体用途不清楚，而且经过测试，除了某个轴在正上方外，也受相机位置影响，会出现角度旋转（camera.up.set(0, 1, 1)）和设置的轴不会在正上方（正视图下设置 z 轴朝上）
+  其实就是旋转整个渲染结果
+## 6.  第 10 章中，OrbitControls 禁止缩放 .enableZoom zoom 也还是生效，不过是范围小了，还影响 正投影缩放范围 的设置生效
+  `controls.enableZoom = false`
