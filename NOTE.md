@@ -567,6 +567,64 @@
     // controls.minAzimuthAngle = 0
     // controls.maxAzimuthAngle = -Math.PI / 2
   ```
+
+## 13. 后处理 EffectComposer(可以根据关键字去 example 目录里搜示例和用法)
+  ```
+    // 效果合成器 EffectComposer
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    // 渲染器通道
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    // OutlinePass 通道：高亮发光描边
+    import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+
+    // 创建 后处理对象 EffectComposer，WebGL渲染器 作为参数
+    const effectComposer = new EffectComposer(renderer)
+
+    // 创建 一个 渲染器通道，场景 和 相机 作为参数
+    const renderPass = new RenderPass(scene, camera)
+    // 通道 添加到 过程链 中
+    effectComposer.addPass(renderPass)
+
+    // 发光描边效果：创建一个 OutlinePass
+    const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera)
+    // selectedObjects 发光的对象
+    outlinePass.selectedObjects = [mesh]
+    // 发光描边的颜色
+    outlinePass.visibleEdgeColor.set('red')
+    // 发光描边的厚度
+    outlinePass.edgeThickness = 10
+    // 描边的发光强度
+    outlinePass.edgeStrength = 10
+    // 描边的闪烁频率，默认0不闪烁
+    outlinePass.pulsePeriod = 3
+    effectComposer.addPass(outlinePass)
+
+    // UnrealBloomPass、GlitchPass 类似
+    // 描边效果可以当作选中效果
+
+    // gltf 后处理 颜色异常(伽马校正)
+    // GammaCorrectionShader
+    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js'  
+    // ShaderPass
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+    // 创建 伽马后处理通道：ShaderPass(GammaCorrectionShader)
+    const gammaPass = new ShaderPass(GammaCorrectionShader) 
+    composer.addPass(gammaPass) 
+
+    // 抗锯齿 后处理（FXAA、SMAA，后者效果更好）
+    // FXAAShader
+    const FXAAPass = new ShaderPass(FXAAShader)
+    const pixelRatio = renderer.getPixelRatio()
+    FXAAPass.uniforms.resolution.value.x = 1 / (width * pixelRatio)
+    FXAAPass.uniforms.resolution.value.y = 1 / (height * pixelRatio)
+    composer.addPass(FXAAPass)
+
+    // SMAAPass: 效果更好
+    const pixelRatio = renderer.getPixelRatio()
+    const smaaPass = new SMAAPass(width * pixelRatio, height * pixelRatio)
+    composer.addPass(smaaPass)
+  ```
 # 四、实际遇到的问题
 ## 1. 直接照着第 11 节敲代码，本想着一步步来，先创建三要素，然后看效果慢慢加，但是总是出不来效果，分析后原因如下：
   （1）材质问题
