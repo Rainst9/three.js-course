@@ -3,9 +3,9 @@ import * as THREE from 'three';
 const geometry = new THREE.BufferGeometry();
 // 类型化数组创建顶点数据
 const vertices = new Float32Array([
-    10, 0, 0, //顶点1坐标
-    0, 30, 0, //顶点2坐标
-    0, -30, 0, //顶点3坐标
+    10, 0, 4, //顶点1坐标
+    -4, 30, 4, //顶点2坐标
+    -4, -30, 4, //顶点3坐标
 ]);
 // 3个为一组，表示一个顶点的xyz坐标
 const attribue = new THREE.BufferAttribute(vertices, 3); 
@@ -16,7 +16,7 @@ geometry.computeVertexNormals();
 
 const material = new THREE.MeshLambertMaterial({
     color: 0x00ffff,
-    side: THREE.DoubleSide // 正反面都可见
+    // side: THREE.DoubleSide // 正反面都可见
 });
 const mesh = new THREE.Mesh(geometry, material);
 
@@ -33,7 +33,7 @@ squareMesh.position.set(100, 0, 0);
 const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
 const boxMaterial = new THREE.MeshLambertMaterial({
     color: 'yellow',
-    side: THREE.DoubleSide // 正反面都可见
+    // side: THREE.DoubleSide // 正反面都可见
 });
 const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
 boxMesh.position.set(0, 0, 20);
